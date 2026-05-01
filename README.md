@@ -28,6 +28,7 @@ Prefijo global de rutas: **`/api`**. CORS habilitado para orígenes del frontend
 | `DATABASE_*` | Conexión PostgreSQL |
 | `JWT_SECRET`, `JWT_EXPIRES_IN` | Firma y caducidad del JWT |
 | `SEED_ADMIN_*` | Opcional: crea admin inicial si no existe usuario con ese correo |
+| `RUN_MIGRATIONS_ON_START` | Opcional: `true` fuerza migraciones al arrancar; `false` las desactiva. Si se omite, en `NODE_ENV=production` se ejecutan migraciones pendientes antes de levantar la API (evita error *relation "roles" does not exist*). |
 
 ## Scripts
 
