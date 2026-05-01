@@ -44,6 +44,8 @@ Prefijo global de rutas: **`/api`**. CORS habilitado para orígenes del frontend
 
 Las migraciones usan el data source en `src/infrastructure/persistence/data-source.ts`.
 
+En plataformas como **Render** o **Heroku**, `npm install` suele ejecutarse con `NODE_ENV=production` y no instala `devDependencies`. Por eso **`@nestjs/cli`**, **`typescript`** y los **`@types/*` necesarios para compilar** están declarados en `dependencies`, para que `npm run build` siga encontrando el comando `nest` y el compilador.
+
 ## Desarrollo vs producción
 
 - **`NODE_ENV` distinto de `production`:** TypeORM tiene `synchronize: true` (ajusta el esquema al arrancar). Útil en local; no sustituye migraciones versionadas si varias personas comparten la misma BD.
