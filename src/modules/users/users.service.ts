@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -16,6 +17,7 @@ import {
   UserRepositoryPort,
 } from '../../domain/ports/user.repository.port';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserEnabledDto } from './dto/update-user-enabled.dto';
 
 @Injectable()
 export class UsersService {
@@ -43,7 +45,7 @@ export class UsersService {
   async listInstructors(): Promise<Omit<UserModel, 'passwordHash'>[]> {
     const rows = await this.users.findAll();
     return rows
-      .filter((u) => u.roleCode === RoleCode.INSTRUCTOR)
+      .filter((u) => u.roleCode === RoleCode.INSTRUCTOR && u.enabled)
       .map(({ passwordHash: _p, ...u }) => u as UserModel);
   }
 
@@ -69,6 +71,29 @@ export class UsersService {
       roleId: role.id,
     });
     const { passwordHash: _p, ...safe } = created;
+    return safe as UserModel;
+  }
+
+  async setEnabled(
+    actorUserId: string,
+    targetUserId: string,
+    dto: UpdateUserEnabledDto,
+  ): Promise<Omit<UserModel, 'passwordHash'>> {
+    if (actorUserId === targetUserId) {
+      throw new BadRequestException(
+        'No puede cambiar el estado de su propia cuenta desde aquí',
+      );
+    }
+    const target = await this.users.findById(targetUserId);
+    if (!target) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+    await this.users.updateEnabled(targetUserId, dto.enabled);
+    const updated = await this.users.findById(targetUserId);
+    if (!updated) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+    const { passwordHash: _p, ...safe } = updated;
     return safe as UserModel;
   }
 }

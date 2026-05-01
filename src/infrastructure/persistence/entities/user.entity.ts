@@ -36,6 +36,9 @@ export class UserEntity {
   @JoinColumn({ name: 'roleId' })
   role!: RoleEntity;
 
+  @Column({ type: 'boolean', default: true })
+  enabled!: boolean;
+
   @CreateDateColumn()
   createdAt!: Date;
 

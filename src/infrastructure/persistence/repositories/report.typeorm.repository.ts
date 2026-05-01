@@ -130,6 +130,10 @@ export class ReportTypeOrmRepository implements ReportRepositoryPort {
     }
     return this.findById(id);
   }
+
+  async remove(id: string): Promise<void> {
+    await this.repo.delete({ id });
+  }
 }
 
 export const reportRepositoryProvider = {

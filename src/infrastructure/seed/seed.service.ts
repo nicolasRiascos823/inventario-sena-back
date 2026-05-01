@@ -45,6 +45,7 @@ export class SeedService implements OnApplicationBootstrap {
         firstName: 'Administrador',
         lastName: 'Sistema',
         roleId: adminRole.id,
+        enabled: true,
       }),
     );
     this.logger.log(`Usuario administrador creado: ${email}`);

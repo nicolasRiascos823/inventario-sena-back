@@ -1,13 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { USER_DISABLED_MESSAGE } from '../../common/constants/auth.messages';
 import { RoleCode } from '../../domain/enums/role-code.enum';
 import { UserModel } from '../../domain/models/user.model';
 import {
   USER_REPOSITORY,
   UserRepositoryPort,
 } from '../../domain/ports/user.repository.port';
-import { Inject } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto';
 
 export interface LoginResult {
@@ -42,6 +42,9 @@ export class AuthService {
     const match = await bcrypt.compare(dto.password, user.passwordHash);
     if (!match) {
       throw new UnauthorizedException(loginFailedMessage);
+    }
+    if (!user.enabled) {
+      throw new UnauthorizedException(USER_DISABLED_MESSAGE);
     }
     return this.buildLoginResult(user);
   }

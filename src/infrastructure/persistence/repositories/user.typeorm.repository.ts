@@ -92,6 +92,7 @@ export class UserTypeOrmRepository implements UserRepositoryPort {
       firstName: data.firstName,
       lastName: data.lastName,
       roleId: data.roleId,
+      enabled: true,
     });
     const saved = await this.repo.save(entity);
     const withRole = await this.repo.findOneOrFail({
@@ -103,6 +104,10 @@ export class UserTypeOrmRepository implements UserRepositoryPort {
 
   async updatePassword(id: string, passwordHash: string): Promise<void> {
     await this.repo.update({ id }, { passwordHash });
+  }
+
+  async updateEnabled(id: string, enabled: boolean): Promise<void> {
+    await this.repo.update({ id }, { enabled });
   }
 }
 

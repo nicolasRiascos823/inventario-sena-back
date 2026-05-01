@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -55,5 +58,15 @@ export class ReportsController {
     @Body() dto: UpdateReportDto,
   ) {
     return this.reports.update(user, id, dto);
+  }
+
+  @Roles(RoleCode.ADMIN)
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  remove(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.reports.remove(user, id);
   }
 }

@@ -11,6 +11,7 @@ export function mapUserEntityToModel(entity: UserEntity): UserModel {
     lastName: entity.lastName,
     roleId: entity.roleId,
     roleCode: entity.role.code,
+    enabled: entity.enabled,
     createdAt: entity.createdAt,
     updatedAt: entity.updatedAt,
   };

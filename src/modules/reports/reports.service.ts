@@ -145,6 +145,17 @@ export class ReportsService {
     });
   }
 
+  async remove(user: AuthUser, id: string): Promise<void> {
+    if (user.roleCode !== RoleCode.ADMIN) {
+      throw new ForbiddenException();
+    }
+    const existing = await this.reports.findById(id);
+    if (!existing) {
+      throw new NotFoundException('Reporte no encontrado');
+    }
+    await this.reports.remove(id);
+  }
+
   async compare(_user: AuthUser, id: string) {
     const report = await this.getOne(id);
     const room = await this.classrooms.findById(report.classroomId);

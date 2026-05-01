@@ -18,6 +18,7 @@ export interface UserRepositoryPort {
     roleId: string;
   }): Promise<UserModel>;
   updatePassword(id: string, passwordHash: string): Promise<void>;
+  updateEnabled(id: string, enabled: boolean): Promise<void>;
 }
 
 export const USER_REPOSITORY = Symbol('USER_REPOSITORY');

@@ -34,6 +34,7 @@ export interface ReportRepositoryPort {
       observacion: string | null;
     }>,
   ): Promise<ReportModel | null>;
+  remove(id: string): Promise<void>;
 }
 
 export const REPORT_REPOSITORY = Symbol('REPORT_REPOSITORY');

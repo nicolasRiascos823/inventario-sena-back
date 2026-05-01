@@ -7,6 +7,7 @@ export interface UserModel {
   lastName: string;
   roleId: string;
   roleCode: string;
+  enabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
