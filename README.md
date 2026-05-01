@@ -4,6 +4,12 @@ API REST del sistema de inventario de salones y reportes (SENA). Construida con 
 
 Prefijo global de rutas: **`/api`**. CORS habilitado para orígenes del frontend en desarrollo.
 
+### Health check (público)
+
+- **`GET /api/health`**: responde `200` con `{ status, database, at }` tras ejecutar `SELECT 1` en PostgreSQL. Si la BD no responde, devuelve **`503`**.
+- **Cada 10 minutos** un cron hace **`GET`** a la URL pública del API (`RENDER_EXTERNAL_URL` + `/api/health`). En Render esa variable la define la plataforma, así el tráfico entra por el proxy y ayuda a evitar el **spin-down** del plan Free. En local (sin esa variable) solo se ejecuta `SELECT 1` contra la BD.
+- Opcional: si no está en Render, defina **`SELF_PING_BASE_URL`** (ej. `https://su-api.com`) para el mismo comportamiento.
+
 ## Requisitos
 
 - Node.js 20+
