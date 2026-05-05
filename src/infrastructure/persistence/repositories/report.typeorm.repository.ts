@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { ReportType } from '../../../domain/enums/report-type.enum';
 import { ReportModel } from '../../../domain/models/report.model';
 import { InventoryCounts } from '../../../domain/value-objects/inventory-counts.vo';
@@ -59,18 +59,11 @@ export class ReportTypeOrmRepository implements ReportRepositoryPort {
     return row ? mapReportEntityToModel(row) : null;
   }
 
-  async findMany(
+  private applyReportFilters(
+    qb: SelectQueryBuilder<ReportEntity>,
     filters: ReportFilters,
     scopeInstructorId?: string,
-  ): Promise<ReportModel[]> {
-    const qb = this.repo
-      .createQueryBuilder('r')
-      .leftJoinAndSelect('r.instructor', 'i')
-      .leftJoinAndSelect('i.role', 'role')
-      .leftJoinAndSelect('r.classroom', 'c')
-      .leftJoinAndSelect('r.ficha', 'f')
-      .orderBy('r.reportedAt', 'DESC');
-
+  ): void {
     if (scopeInstructorId) {
       qb.andWhere('r.instructorId = :iid', { iid: scopeInstructorId });
     }
@@ -93,9 +86,52 @@ export class ReportTypeOrmRepository implements ReportRepositoryPort {
     } else if (filters.to) {
       qb.andWhere('r.reportedAt <= :to', { to: filters.to });
     }
+  }
 
-    const rows = await qb.getMany();
-    return rows.map(mapReportEntityToModel);
+  async findManyPaginated(
+    filters: ReportFilters,
+    scopeInstructorId: string | undefined,
+    page: number,
+    limit: number,
+  ): Promise<{ items: ReportModel[]; total: number }> {
+    const qb = this.repo
+      .createQueryBuilder('r')
+      .leftJoinAndSelect('r.instructor', 'i')
+      .leftJoinAndSelect('i.role', 'role')
+      .leftJoinAndSelect('r.classroom', 'c')
+      .leftJoinAndSelect('r.ficha', 'f');
+
+    this.applyReportFilters(qb, filters, scopeInstructorId);
+
+    const total = await qb.clone().getCount();
+    const rows = await qb
+      .orderBy('r.reportedAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    return {
+      items: rows.map(mapReportEntityToModel),
+      total,
+    };
+  }
+
+  async findPreviousInClassroom(
+    classroomId: string,
+    beforeReportedAt: Date,
+  ): Promise<ReportModel | null> {
+    const row = await this.repo
+      .createQueryBuilder('r')
+      .leftJoinAndSelect('r.instructor', 'i')
+      .leftJoinAndSelect('i.role', 'role')
+      .leftJoinAndSelect('r.classroom', 'c')
+      .leftJoinAndSelect('r.ficha', 'f')
+      .where('r.classroomId = :cid', { cid: classroomId })
+      .andWhere('r.reportedAt < :t', { t: beforeReportedAt })
+      .orderBy('r.reportedAt', 'DESC')
+      .limit(1)
+      .getOne();
+    return row ? mapReportEntityToModel(row) : null;
   }
 
   async update(

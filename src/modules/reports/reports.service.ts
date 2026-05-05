@@ -78,10 +78,7 @@ export class ReportsService {
     });
   }
 
-  async list(
-    _user: AuthUser,
-    query: FilterReportsQueryDto,
-  ): Promise<ReportModel[]> {
+  async list(_user: AuthUser, query: FilterReportsQueryDto) {
     const filters: ReportFilters = {
       classroomId: query.classroomId,
       fichaId: query.fichaId,
@@ -89,7 +86,24 @@ export class ReportsService {
       to: query.to ? new Date(query.to) : undefined,
       instructorId: query.instructorId,
     };
-    return this.reports.findMany(filters, undefined);
+    const page = query.page ?? 1;
+    const limit = Math.min(Math.max(query.limit ?? 20, 1), 100);
+    const { items, total } = await this.reports.findManyPaginated(
+      filters,
+      undefined,
+      page,
+      limit,
+    );
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+    return {
+      data: items,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    };
   }
 
   async getOne(id: string): Promise<ReportModel> {
@@ -158,17 +172,23 @@ export class ReportsService {
 
   async compare(_user: AuthUser, id: string) {
     const report = await this.getOne(id);
-    const room = await this.classrooms.findById(report.classroomId);
-    if (!room) {
-      throw new NotFoundException('Salón no encontrado');
-    }
-    const comparison = compareInventoryToBase(
-      room.baseInventory,
-      report.counts,
+    const previous = await this.reports.findPreviousInClassroom(
+      report.classroomId,
+      report.reportedAt,
     );
+    if (!previous) {
+      return {
+        report,
+        previousReport: null,
+        comparison: null,
+        message:
+          'No hay un reporte anterior en este salón; es el primero registrado ahí.',
+      };
+    }
+    const comparison = compareInventoryToBase(previous.counts, report.counts);
     return {
       report,
-      baseInventory: room.baseInventory,
+      previousReport: previous,
       comparison,
     };
   }

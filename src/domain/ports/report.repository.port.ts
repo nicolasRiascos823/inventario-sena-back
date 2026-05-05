@@ -20,10 +20,17 @@ export interface ReportRepositoryPort {
     observacion?: string | null;
   }): Promise<ReportModel>;
   findById(id: string): Promise<ReportModel | null>;
-  findMany(
+  findManyPaginated(
     filters: ReportFilters,
-    scopeInstructorId?: string,
-  ): Promise<ReportModel[]>;
+    scopeInstructorId: string | undefined,
+    page: number,
+    limit: number,
+  ): Promise<{ items: ReportModel[]; total: number }>;
+  /** Reporte previo en el mismo salón con fecha estrictamente anterior a la dada. */
+  findPreviousInClassroom(
+    classroomId: string,
+    beforeReportedAt: Date,
+  ): Promise<ReportModel | null>;
   update(
     id: string,
     data: Partial<{
